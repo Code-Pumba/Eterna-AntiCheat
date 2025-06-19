@@ -55,9 +55,11 @@ createBuilder(
 		});
 
 		if (web && !watch) await exec('cd ./web && vite build');
-		if (web && watch) await exec('cd ./web && vite build --watch');
+		if (web && watch) exec('cd ./web && vite build --watch');
 
 		const newFiles = await getFiles('dist', 'static', 'locales', 'web/dist', './fxmanifest.lua'); // . für fxmanifest.lua
 		await copyFilesWithStructure([...newFiles, 'fxmanifest.lua'], 'C:/Users/Leon/Documents/Repositories/FiveM-Shop/ESX/data/resources/EAntiCheat'); // ESX data resources
+
+		console.log('Successfully build and moved Files.');
 	}
 );

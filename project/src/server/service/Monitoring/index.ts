@@ -1,11 +1,10 @@
-import { AbstractService, ServiceConfig } from '..';
-import { bootstrap } from '../..';
-import { Logger, LoggerFactory } from '../Logger';
+import { LoggerFactory, Logger } from '../../helper/Logger';
+import { BaseService } from '..';
+import { ServiceConfig } from '../data';
+import { ResourceState } from './data';
 
-export type ResourceState = 'started' | 'starting' | 'stopped' | 'stopping' | 'missing' | 'uninitialized' | 'unknown'; // "missing", "started", "starting", "stopped", "stopping", "uninitialized" or "unknown"
-
-export class MonitoringService extends AbstractService {
-	public readonly serviceIdentifier = 'monitoring';
+export class MonitoringService extends BaseService {
+	public readonly serviceIdentifier: string = 'monitoring';
 
 	public readonly config: ServiceConfig = {
 		priority: 500,

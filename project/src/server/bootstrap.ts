@@ -1,70 +1,55 @@
-import { AbstractService, ServiceManager } from './service';
-import { Logger, LoggerFactory } from './service/Logger';
-import { ManagedServiceManager } from './service/managedService';
+import { BaseService } from './service';
+import { ServiceManager } from './service/manager';
+import { MonitoringService } from './service/Monitoring';
 
-// Bootstrap-Klasse für strukturierten Startup
-export class AntiCheatBootstrap {
-	private serviceManager: ManagedServiceManager;
-	private logger: Logger;
-	private isInitialized = false;
+export interface IBoot {
+	registerService(service: any): void;
+	registerController(controller: any): void;
+	initializeAntiCheat(): Promise<void>;
+	destroyAntiCheat(): Promise<void>;
+
+	// Getter
+	getServiceManager(): any;
+	getControllerManager(): any;
+}
+
+export class Bootstrap implements IBoot {
+	private serviceManager: ServiceManager;
+	private controllerManager: any;
+
+	private initialized: boolean = false;
 
 	constructor() {
-		this.serviceManager = new ManagedServiceManager();
-		this.logger = LoggerFactory.create('bootstrap');
+		this.serviceManager = new ServiceManager();
 	}
 
-	// Service registrieren
-	public registerService(service: AbstractService): void {
-		if (this.isInitialized) {
-			throw new Error('Cannot register services after initialization');
+	public registerService(service: BaseService) {
+		if (this.serviceManager.getService(service.serviceIdentifier)) {
+			throw new Error(`Service ${service.serviceIdentifier} already registered!`);
 		}
 		this.serviceManager.register(service);
 	}
 
-	// Alle Services starten
-	public async start(): Promise<void> {
-		if (this.isInitialized) {
-			throw new Error('Bootstrap already initialized');
-		}
-
-		try {
-			console.log('=== AntiCheat System Starting ===');
-
-			// Services initialisieren (registrierung schließen + starten)
-			await this.serviceManager.initialize();
-
-			this.isInitialized = true;
-			console.log('=== AntiCheat System Ready ===');
-		} catch (error) {
-			console.log('Bootstrap failed', { error });
-			throw error;
-		}
+	public registerController(controller: any) {
+		throw new Error('Method not implemented.');
 	}
 
-	// System herunterfahren
-	public async stop(): Promise<void> {
-		if (!this.isInitialized) {
-			return;
-		}
-
-		try {
-			console.log('Shutting down AntiCheat system...');
-			await this.serviceManager.stop();
-			this.isInitialized = false;
-			console.log('AntiCheat system stopped');
-		} catch (error) {
-			console.log('Shutdown failed', { error });
-			throw error;
-		}
+	public async initializeAntiCheat(): Promise<void> {
+		// Add Services
+		this.registerService(new MonitoringService());
+		// Init Services
+		await this.serviceManager.start();
 	}
 
-	// Service Manager zugriff
+	public destroyAntiCheat(): Promise<void> {
+		throw new Error('Method not implemented.');
+	}
+
 	public getServiceManager(): ServiceManager {
 		return this.serviceManager;
 	}
 
-	// Status prüfen
-	public isReady(): boolean {
-		return this.isInitialized;
+	public getControllerManager(): any {
+		throw new Error('Method not implemented.');
 	}
 }

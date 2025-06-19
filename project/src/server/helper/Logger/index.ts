@@ -1,68 +1,13 @@
-import { AbstractService, ServiceConfig, ServiceEvent, ServiceManagerEvents } from '..';
-import { bootstrap } from '../..';
+import { LogEntry, LoggerConfig, LogLevel, LogOutput } from './data';
 
-// Erweiterte Log-Level mit numerischen Werten für Filterung
-export enum LogLevel {
-	DEBUG = 0,
-	INFO = 1,
-	WARNING = 2,
-	ERROR = 3,
-	CRITICAL = 4,
-	SECURITY = 5, // Speziell für AntiCheat-Events
-}
-
-// Log-Ausgabeziele
-export enum LogOutput {
-	CONSOLE = 'console',
-	FILE = 'file',
-	DATABASE = 'database',
-	REMOTE = 'remote',
-}
-
-// Log-Entry Interface
-export interface LogEntry {
-	timestamp: number;
-	level: LogLevel;
-	instance: string;
-	message: string;
-	metadata?: Record<string, any>;
-	playerId?: string; // Für AntiCheat-spezifische Logs
-	detectionType?: string; // Art der Erkennung
-	severity?: number; // 1-10 Schweregrad
-	stackTrace?: string;
-}
-
-// Logger-Konfiguration
-export interface LoggerConfig {
-	minLevel: LogLevel;
-	outputs: LogOutput[];
-	maxFileSize: number; // MB
-	maxFiles: number;
-	includeStackTrace: boolean;
-	timestampFormat: string;
-	bufferSize: number; // Anzahl Logs im Buffer
-	flushInterval: number; // ms
-	enableColors: boolean;
-}
-
-// Verbesserter Logger
 export class Logger {
-	public readonly serviceIdentifier = 'logger';
-	public readonly config: ServiceConfig = {
-		priority: 1000, // Höchste Priorität - Logger sollte zuerst starten
-		dependencies: [],
-		timeout: 100,
-		restartOnError: true,
-	};
-
 	private readonly instance: string;
 	private loggerConfig: LoggerConfig;
 	private logBuffer: LogEntry[] = [];
 	private flushTimer: NodeJS.Timeout | null = null;
-	private fileHandle: any = null; // FiveM file handle
+	private fileHandle: any = null;
 	private logCounter = 0;
 
-	// ANSI Color Codes für Console
 	private readonly colors = {
 		[LogLevel.DEBUG]: '\x1b[36m', // Cyan
 		[LogLevel.INFO]: '\x1b[32m', // Green
@@ -77,7 +22,7 @@ export class Logger {
 		this.instance = instance;
 		this.loggerConfig = {
 			minLevel: LogLevel.INFO,
-			outputs: [LogOutput.CONSOLE, LogOutput.FILE],
+			outputs: [LogOutput.CONSOLE], // We could add File Logging with LogOutput.FILE
 			maxFileSize: 50, // 50MB
 			maxFiles: 10,
 			includeStackTrace: false,
@@ -87,89 +32,29 @@ export class Logger {
 			enableColors: true,
 			...config,
 		};
-	}
-
-	protected async onServiceEnable(): Promise<void> {
-		if (!this.instance) {
-			throw new Error('Logger instance name cannot be empty');
-		}
-
-		// File logging initialisieren
-		// if (this.loggerConfig.outputs.includes(LogOutput.FILE)) {
-		// 	await this.initializeFileLogging();
-		// }
 
 		// Flush Timer starten
 		this.flushTimer = setInterval(() => {
 			this.flushBuffer();
 		}, this.loggerConfig.flushInterval);
 
-		this.info('Logger service started', {
+		this.info('Created a Logger Instance', {
 			instance: this.instance,
-			config: this.loggerConfig,
-		});
-
-		bootstrap.getServiceManager().onEvent((data: ServiceEvent) => {
-			if (data.event === 'health_check_failed') {
-				this.healthCheckFailed();
-			}
 		});
 	}
 
-	private healthCheckFailed() {
-		this.error('Health check failed', {
-			instance: this.instance,
-			config: this.loggerConfig,
-		});
-	}
-
-	protected async onServiceDisable(): Promise<void> {
-		// Flush alle verbleibenden Logs
-		await this.flushBuffer();
-
-		// Timer stoppen
+	// Stop Method
+	public destroyLogger(): void {
 		if (this.flushTimer) {
 			clearInterval(this.flushTimer);
 			this.flushTimer = null;
 		}
 
-		// File handle schließen
 		if (this.fileHandle) {
-			// FiveM file closing logic here
+			this.fileHandle.close();
 			this.fileHandle = null;
 		}
-
 		this.info('Logger service stopped');
-	}
-
-	protected async onHealthCheck(): Promise<boolean> {
-		// Prüfen ob alle konfigurierten Outputs funktionieren
-		try {
-			// Test log entry
-			// const testEntry: LogEntry = {
-			// 	timestamp: Date.now(),
-			// 	level: LogLevel.DEBUG,
-			// 	instance: this.instance,
-			// 	message: 'Health check',
-			// 	metadata: { healthCheck: true },
-			// };
-
-			// // Teste Console Output
-			// if (this.loggerConfig.outputs.includes(LogOutput.CONSOLE)) {
-			// 	// Console sollte immer funktionieren
-			// }
-
-			// // Teste File Output
-			// if (this.loggerConfig.outputs.includes(LogOutput.FILE)) {
-			// 	if (!this.fileHandle) {
-			// 		return false;
-			// 	}
-			// }
-
-			return true;
-		} catch (error) {
-			return false;
-		}
 	}
 
 	// Hauptlog-Methoden
@@ -271,7 +156,6 @@ export class Logger {
 
 		for (const entry of entries) {
 			await this.outputLog(entry);
-			console.log('Output');
 		}
 	}
 
@@ -302,12 +186,12 @@ export class Logger {
 
 	// Log-Entry formatieren
 	private formatLogEntry(entry: LogEntry): { console: string; file: string } {
-		const timestamp = new Date(entry.timestamp).toISOString();
+		const timestamp = new Date(entry.timestamp).toLocaleTimeString();
 		const levelName = LogLevel[entry.level];
 		const metaString = entry.metadata ? JSON.stringify(entry.metadata) : '';
 
 		// Console Format (mit Farben)
-		let consoleFormat = `[${timestamp}][${this.instance}][${levelName}] ${entry.message}`;
+		let consoleFormat = `[${timestamp}][${levelName}][${this.instance}]\n ${entry.message}`;
 		if (metaString) {
 			consoleFormat += ` | ${metaString}`;
 		}
@@ -365,7 +249,7 @@ export class Logger {
 		return {
 			totalLogs: this.logCounter,
 			bufferSize: this.logBuffer.length,
-			uptime: new Date().getTime() - 9, //TODO!: Change this
+			uptime: 0,
 			instance: this.instance,
 		};
 	}
@@ -383,7 +267,6 @@ export class Logger {
 	}
 }
 
-// Factory für verschiedene Logger-Instanzen
 export class LoggerFactory {
 	private static loggers: Map<string, Logger> = new Map();
 
@@ -409,6 +292,6 @@ export class LoggerFactory {
 // Globaler Logger für einfache Nutzung
 export const GlobalLogger = LoggerFactory.create('global', {
 	minLevel: LogLevel.INFO,
-	outputs: [LogOutput.CONSOLE, LogOutput.FILE],
+	outputs: [LogOutput.CONSOLE],
 	enableColors: true,
 });
