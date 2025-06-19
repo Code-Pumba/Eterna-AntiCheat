@@ -1,65 +1,257 @@
-//@ts-check
-
-import { exists, exec, getFiles, copyFilesWithStructure } from './utils.js';
-import { createBuilder, createFxmanifest } from '@overextended/fx-utils';
+import { build } from 'esbuild';
+import { exists, exec, getFiles, copyFilesWithStructure, getPackage, findEntryPoints } from './utils.js';
+import { writeFile, readFile } from 'fs/promises';
+import { resolve } from 'path';
 
 const watch = process.argv.includes('--watch');
 const web = await exists('./web');
-const dropLabels = ['$BROWSER'];
+const pkg = await getPackage();
 
+// ESBuild Konfiguration
+const baseConfig = {
+	keepNames: true,
+	legalComments: 'inline',
+	bundle: true,
+	minify: !watch,
+	minifyIdentifiers: !watch,
+	minifySyntax: !watch,
+	minifyWhitespace: !watch,
+	treeShaking: true,
+	sourcemap: watch ? 'inline' : false,
+	logLevel: 'info',
+	metafile: true, // Wichtig für Output-Tracking
+};
+
+const dropLabels = ['$BROWSER'];
 if (!watch) dropLabels.push('$DEV');
 
-createBuilder(
-	watch,
-	{
-		keepNames: true,
-		legalComments: 'inline',
-		bundle: true,
-		minify: true,
-		minifyIdentifiers: true,
-		minifySyntax: true,
-		minifyWhitespace: true,
-		treeShaking: true,
-	},
-	[
-		{
-			name: 'server',
-			options: {
-				platform: 'node',
-				target: ['node22'],
-				format: 'cjs',
-				dropLabels: [...dropLabels, '$CLIENT'],
-			},
-		},
-		{
-			name: 'client',
-			options: {
-				platform: 'browser',
-				target: ['es2021'],
-				format: 'iife',
-				dropLabels: [...dropLabels, '$SERVER'],
-			},
-		},
-	],
-	async (outfiles) => {
-		const files = await getFiles('dist/web', 'static', 'locales');
-		await createFxmanifest({
-			client_scripts: [outfiles.client],
-			server_scripts: [outfiles.server],
-			files: ['lib/init.lua', 'lib/client/**.lua', 'locales/*.json', ...files],
-			dependencies: ['/server:13068', '/onesync'],
-			metadata: {
-				ui_page: 'dist/web/index.html',
-				node_version: '22',
-			},
+// Entry Points dynamisch finden
+const serverEntryPoints = await findEntryPoints('src/server');
+const clientEntryPoints = await findEntryPoints('src/client');
+const sharedEntryPoints = await findEntryPoints('src/shared');
+
+console.log(`📁 Found ${serverEntryPoints.length} server entry points`);
+console.log(`📁 Found ${clientEntryPoints.length} client entry points`);
+console.log(`📁 Found ${sharedEntryPoints.length} shared entry points`);
+
+// Server Build Konfiguration
+const serverConfig = {
+	...baseConfig,
+	entryPoints: [...serverEntryPoints, ...sharedEntryPoints],
+	outdir: 'dist/server',
+	platform: 'node',
+	target: ['node22'],
+	format: 'cjs',
+	dropLabels: [...dropLabels, '$CLIENT'],
+	external: ['@citizenfx/server'],
+};
+
+// Client Build Konfiguration
+const clientConfig = {
+	...baseConfig,
+	entryPoints: [...clientEntryPoints, ...sharedEntryPoints],
+	outdir: 'dist/client',
+	platform: 'browser',
+	target: ['es2021'],
+	format: 'iife',
+	dropLabels: [...dropLabels, '$SERVER'],
+	external: ['@citizenfx/client'],
+};
+
+// Funktion zum Erstellen der fxmanifest.lua
+async function createFxmanifest(config) {
+	const manifest = `fx_version 'cerulean'
+game 'gta5'
+
+name '${pkg.name || 'Unknown'}'
+version '${pkg.version || '1.0.0'}'
+description '${pkg.description || ''}'
+author '${pkg.author || 'Unknown'}'
+
+lua54 'yes'
+use_experimental_fxv2_oal 'yes'
+
+${
+	config.client_scripts
+		? `client_scripts {
+    ${config.client_scripts.map((script) => `'${script}'`).join(',\n    ')}
+}`
+		: ''
+}
+
+${
+	config.server_scripts
+		? `server_scripts {
+    ${config.server_scripts.map((script) => `'${script}'`).join(',\n    ')}
+}`
+		: ''
+}
+
+${
+	config.files
+		? `files {
+    ${config.files.map((file) => `'${file}'`).join(',\n    ')}
+}`
+		: ''
+}
+
+${config.metadata?.ui_page ? `ui_page '${config.metadata.ui_page}'` : ''}
+
+${
+	config.dependencies
+		? `dependencies {
+    ${config.dependencies.map((dep) => `'${dep}'`).join(',\n    ')}
+}`
+		: ''
+}
+`;
+
+	await writeFile('fxmanifest.lua', manifest);
+	console.log('✅ fxmanifest.lua created');
+}
+
+// Funktion zum Sammeln der Build-Outputs
+function collectOutputFiles(results) {
+	const outputs = {
+		client: [],
+		server: [],
+	};
+
+	results.forEach((result, index) => {
+		if (result.metafile && result.metafile.outputs) {
+			const type = index === 0 ? 'server' : 'client';
+			outputs[type] = Object.keys(result.metafile.outputs)
+				.filter((file) => file.endsWith('.js'))
+				.map((file) => file.replaceAll('\\', '/'));
+		}
+	});
+
+	return outputs;
+}
+
+// Watch-Modus Plugin
+const watchPlugin = {
+	name: 'watch-plugin',
+	setup(build) {
+		build.onEnd(async (result) => {
+			if (result.errors.length > 0) {
+				console.error('❌ Build failed:', result.errors);
+				return;
+			}
+			console.log(`✅ ${build.initialOptions.platform} build completed`);
 		});
+	},
+};
 
-		if (web && !watch) await exec('cd ./web && vite build');
-		if (web && watch) exec('cd ./web && vite build --watch');
+// Haupt-Build-Funktion
+async function runBuild() {
+	try {
+		console.log('🚀 Starting ESBuild...');
 
-		const newFiles = await getFiles('dist', 'static', 'locales', 'web/dist', './fxmanifest.lua'); // . für fxmanifest.lua
-		await copyFilesWithStructure([...newFiles, 'fxmanifest.lua'], 'C:/Users/Leon/Documents/Repositories/FiveM-Shop/ESX/data/resources/EAntiCheat'); // ESX data resources
+		// Watch-Modus
+		if (watch) {
+			const contexts = [];
 
-		console.log('Successfully build and moved Files.');
+			// Server Watch
+			if (serverConfig.entryPoints.length > 0) {
+				const serverContext = await build({
+					...serverConfig,
+					plugins: [watchPlugin],
+					watch: true,
+				});
+				contexts.push(serverContext);
+				console.log('👀 Server watching for changes...');
+			}
+
+			// Client Watch
+			if (clientConfig.entryPoints.length > 0) {
+				const clientContext = await build({
+					...clientConfig,
+					plugins: [watchPlugin],
+					watch: true,
+				});
+				contexts.push(clientContext);
+				console.log('👀 Client watching for changes...');
+			}
+
+			// Web Watch-Modus
+			if (web) {
+				console.log('🌐 Starting web watch mode...');
+				exec('cd ./web && vite build --watch');
+			}
+
+			console.log('👀 All builds are watching for changes...');
+			return;
+		}
+
+		// Warten auf alle Builds (nur im normalen Modus)
+		if (!watch) {
+			const buildPromises = [];
+
+			// Nur bauen wenn Entry Points vorhanden sind
+			if (serverConfig.entryPoints.length > 0) {
+				buildPromises.push(build(serverConfig));
+			}
+
+			if (clientConfig.entryPoints.length > 0) {
+				buildPromises.push(build(clientConfig));
+			}
+
+			if (buildPromises.length === 0) {
+				console.warn('⚠️  No entry points found for building');
+				return;
+			}
+
+			const results = await Promise.all(buildPromises);
+			const outputs = collectOutputFiles(results);
+
+			console.log('Server outputs:', outputs.server);
+			console.log('Client outputs:', outputs.client);
+
+			// Web Build
+			if (web) {
+				console.log('🌐 Building web...');
+				await exec('cd ./web && vite build');
+			}
+
+			// FXManifest erstellen
+			const staticFiles = await getFiles('dist/web', 'static', 'locales');
+			// Pfade normalisieren (Windows -> Unix)
+			const normalizedFiles = staticFiles.map((file) => file.replaceAll('\\', '/'));
+
+			await createFxmanifest({
+				client_scripts: outputs.client,
+				server_scripts: outputs.server,
+				files: ['lib/init.lua', 'lib/client/**.lua', 'locales/*.json', ...normalizedFiles],
+				dependencies: ['/server:13068', '/onesync'],
+				metadata: {
+					ui_page: 'dist/web/index.html',
+					node_version: '22',
+				},
+			});
+
+			console.log(outputs.client.length > 0 ? '✅ Client build completed' : '⚠️  Client build skipped (no entry points)');
+			console.log(outputs.server.length > 0 ? '✅ Server build completed' : '⚠️  Server build skipped (no entry points)');
+
+			// Dateien kopieren (fxmanifest.lua separat hinzufügen, nicht als Directory)
+			const allFiles = await getFiles('dist', 'static', 'locales', 'web/dist');
+			await copyFilesWithStructure([...allFiles, 'fxmanifest.lua'], 'server-ready');
+
+			console.log('✅ Build completed successfully!');
+		} else {
+			// Web Watch-Modus
+			if (web) {
+				console.log('🌐 Starting web watch mode...');
+				exec('cd ./web && vite build --watch');
+			}
+
+			console.log('👀 All builds are watching for changes...');
+		}
+	} catch (error) {
+		console.error('❌ Build failed:', error);
+		process.exit(1);
 	}
-);
+}
+
+// Build starten
+runBuild();
