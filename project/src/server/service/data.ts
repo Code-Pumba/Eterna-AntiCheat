@@ -1,4 +1,6 @@
-// Service Status Enum für bessere Zustandsverfolgung
+/**
+ * Status of a service
+ */
 export enum ServiceStatus {
 	DISABLED = 'disabled',
 	ENABLING = 'enabling',
@@ -7,16 +9,33 @@ export enum ServiceStatus {
 	ERROR = 'error',
 }
 
-// Erweiterte Service-Konfiguration
 export interface ServiceConfig {
-	readonly priority: number; // Für Startreihenfolge
-	readonly dependencies: string[]; // Service-Abhängigkeiten
-	readonly timeout: number; // Timeout für Start/Stop
-	readonly restartOnError: boolean; // Auto-Restart bei Fehlern
+	/**
+	 * Priority of the service
+	 */
+	readonly priority: number;
+	/**
+	 * Dependencies of the service
+	 */
+	readonly dependencies: string[];
+	/**
+	 * Timeout of the service
+	 */
+	readonly timeout: number;
+	/**
+	 * Restart the service on error
+	 */
+	readonly restartOnError: boolean;
 }
 
-// Service-Events für bessere Überwachung
+/**
+ * Events that can be emitted by the ServiceManager
+ */
 export type ServiceManagerEvents = 'started' | 'stopped' | 'error' | 'health_check_failed';
+
+/**
+ * Event that is emitted by the ServiceManager
+ */
 export interface ServiceEvent {
 	serviceId: string;
 	event: ServiceManagerEvents;

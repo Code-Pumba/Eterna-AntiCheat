@@ -9,7 +9,9 @@ export abstract class BaseService {
 	public _lastError: Error | null = null;
 	private _startTime: number | null = null;
 
-	// Abstrakte Methoden für Implementierung
+	/**
+	 * Abstract methods
+	 */
 	protected abstract onServiceEnable(): Promise<void>;
 	protected abstract onServiceDisable(): Promise<void>;
 	protected abstract onHealthCheck(): Promise<boolean>;
@@ -25,7 +27,9 @@ export abstract class BaseService {
 	public get isHealthy(): boolean {
 		return this.status === ServiceStatus.ENABLED && !this._lastError;
 	}
-	// Interne Enable-Methode
+	/**
+	 * Internal Methods to Enable or Disable the Service
+	 */
 	public async onEnable(): Promise<void> {
 		if (this._status !== ServiceStatus.DISABLED) {
 			throw new Error(`[AntiCheat][${this.serviceIdentifier}] this service couldnt be Started because it is already enabled!`);
@@ -44,7 +48,10 @@ export abstract class BaseService {
 			GlobalLogger.error(`[AntiCheat][${this.serviceIdentifier}] Service couldnt be enabled!`, { error: this._lastError });
 		}
 	}
-	// Interne Disable-Methode
+
+	/**
+	 * Internal Methods to Enable or Disable the Service
+	 */
 	public async onDisable(): Promise<void> {
 		if (this._status === ServiceStatus.DISABLED) {
 			return;
@@ -63,7 +70,10 @@ export abstract class BaseService {
 		}
 	}
 
-	// Health Check mit Timeout
+	/**
+	 * Checks if the given Service is healthy
+	 * @returns {Promise<boolean>}
+	 */
 	public async healthCheck(): Promise<boolean> {
 		if (this._status !== ServiceStatus.ENABLED) {
 			return false;
@@ -81,7 +91,13 @@ export abstract class BaseService {
 		}
 	}
 
-	// Timeout-Hilfsmethode
+	/**
+	 * Method to run a promise with a timeout
+	 * @param promise
+	 * @param timeoutMs
+	 * @param timeoutMessage
+	 * @returns
+	 */
 	private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
 		const timeoutPromise = new Promise<never>((_, reject) => {
 			setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);

@@ -91,14 +91,17 @@ export class ServiceManager {
 		}
 	}
 
-	// Bestimmten Service starten
+	/**
+	 * Starts a service with its given Identifier
+	 * @param identifier of the Service
+	 */
 	public async startService(identifier: string): Promise<void> {
 		const service = this.services.get(identifier);
 		if (!service) {
 			throw new Error(`Service ${identifier} not found`);
 		}
 
-		// Dependencies prüfen
+		// Check Dependencies
 		for (const dep of service.config.dependencies) {
 			const depService = this.services.get(dep);
 			if (!depService || depService.status !== ServiceStatus.ENABLED) {
@@ -107,7 +110,6 @@ export class ServiceManager {
 		}
 
 		await service.onEnable();
-		console.log("Service '" + identifier + "' started");
 		this.emitEvent({
 			serviceId: identifier,
 			event: 'started',
@@ -115,14 +117,17 @@ export class ServiceManager {
 		});
 	}
 
-	// Service stoppen
+	/**
+	 * Stops a service with its given Identifier
+	 * @param identifier of the Service
+	 */
 	public async stopService(identifier: string): Promise<void> {
 		const service = this.services.get(identifier);
 		if (!service) {
 			throw new Error(`Service ${identifier} not found`);
 		}
 
-		// Abhängige Services prüfen
+		// Check if the Service has any Dependencies
 		const dependentServices = Array.from(this.services.values()).filter((s) => s.config.dependencies.includes(identifier) && s.status === ServiceStatus.ENABLED);
 
 		if (dependentServices.length > 0) {
@@ -162,7 +167,7 @@ export class ServiceManager {
 		this.eventHandlers.push(handler);
 	}
 
-	// Services nach Priorität und Dependencies sortieren
+	// Sort Services topologically
 	private getSortedServices(): BaseService[] {
 		const services = Array.from(this.services.values());
 		const sorted: BaseService[] = [];
@@ -179,7 +184,7 @@ export class ServiceManager {
 
 			visiting.add(service.serviceIdentifier);
 
-			// Dependencies zuerst besuchen
+			// Recursion
 			for (const dep of service.config.dependencies) {
 				const depService = this.services.get(dep);
 				if (depService) {
@@ -192,7 +197,7 @@ export class ServiceManager {
 			sorted.push(service);
 		};
 
-		// Nach Priorität sortieren, dann topologisch sortieren
+		// Sort by priority
 		services.sort((a, b) => b.config.priority - a.config.priority).forEach(visit);
 
 		return sorted;
@@ -210,7 +215,7 @@ export class ServiceManager {
 							timestamp: Date.now(),
 						});
 
-						// Auto-Restart wenn konfiguriert
+						// Auto-Restart
 						if (service.config.restartOnError) {
 							try {
 								await service.onDisable();
@@ -227,10 +232,10 @@ export class ServiceManager {
 					}
 				}
 			}
-		}, 30000); // Health Check alle 30 Sekunden
+		}, 30000); // Health Check interval 30s
 	}
 
-	// Event emittieren
+	// emit an event
 	private emitEvent(event: ServiceEvent): void {
 		this.eventHandlers.forEach((handler) => {
 			try {
@@ -241,10 +246,10 @@ export class ServiceManager {
 		});
 	}
 
-	// Restart mit besserer Fehlerbehandlung
+	// Restart with a 1s delay
 	public async restart(): Promise<void> {
 		await this.stop();
-		await new Promise((resolve) => setTimeout(resolve, 1000)); // Kurze Pause
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 		await this.start();
 	}
 }

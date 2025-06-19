@@ -28,12 +28,12 @@ export class Logger {
 			includeStackTrace: false,
 			timestampFormat: 'YYYY-MM-DD HH:mm:ss',
 			bufferSize: 100,
-			flushInterval: 5000, // 5 Sekunden
+			flushInterval: 5000, // 5s
 			enableColors: true,
 			...config,
 		};
 
-		// Flush Timer starten
+		// Flush Timer
 		this.flushTimer = setInterval(() => {
 			this.flushBuffer();
 		}, this.loggerConfig.flushInterval);
@@ -57,7 +57,7 @@ export class Logger {
 		this.info('Logger service stopped');
 	}
 
-	// Hauptlog-Methoden
+	// main Log Methoden
 	public debug(message: string, metadata?: Record<string, any>): void {
 		this.log(LogLevel.DEBUG, message, metadata);
 	}
@@ -88,7 +88,6 @@ export class Logger {
 		this.log(LogLevel.CRITICAL, message, meta);
 	}
 
-	// AntiCheat-spezifische Log-Methoden
 	public security(message: string, playerId: string, detectionType: string, severity: number = 5, metadata?: Record<string, any>): void {
 		this.log(LogLevel.SECURITY, message, {
 			...metadata,
@@ -115,9 +114,8 @@ export class Logger {
 		});
 	}
 
-	// Hauptlog-Methode
+	// Main Log Method
 	private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
-		// Level-Filter
 		if (level < this.loggerConfig.minLevel) {
 			return;
 		}
@@ -130,16 +128,16 @@ export class Logger {
 			metadata,
 		};
 
-		// Stack trace hinzufügen wenn konfiguriert
+		// Stack trace
 		if (this.loggerConfig.includeStackTrace && level >= LogLevel.ERROR) {
 			entry.stackTrace = new Error().stack;
 		}
 
-		// Zu Buffer hinzufügen
+		// add to buffer
 		this.logBuffer.push(entry);
 		this.logCounter++;
 
-		// Sofortiger Flush bei kritischen Logs
+		// Flush Instantly if the level is Critical
 		if (level >= LogLevel.CRITICAL) {
 			this.flushBuffer();
 		} else if (this.logBuffer.length >= this.loggerConfig.bufferSize) {
@@ -147,7 +145,7 @@ export class Logger {
 		}
 	}
 
-	// Buffer leeren und Logs ausgeben
+	// Buffer clearing and flushing
 	private async flushBuffer(): Promise<void> {
 		if (this.logBuffer.length === 0) return;
 
@@ -159,7 +157,7 @@ export class Logger {
 		}
 	}
 
-	// Log-Entry ausgeben
+	// Output Log
 	private async outputLog(entry: LogEntry): Promise<void> {
 		const formatted = this.formatLogEntry(entry);
 
@@ -184,13 +182,13 @@ export class Logger {
 		// }
 	}
 
-	// Log-Entry formatieren
+	// Log-Entry formatting
 	private formatLogEntry(entry: LogEntry): { console: string; file: string } {
 		const timestamp = new Date(entry.timestamp).toLocaleTimeString();
 		const levelName = LogLevel[entry.level];
 		const metaString = entry.metadata ? JSON.stringify(entry.metadata) : '';
 
-		// Console Format (mit Farben)
+		// Console Format (with colors)
 		let consoleFormat = `[${timestamp}][${levelName}][${this.instance}]\n ${entry.message}`;
 		if (metaString) {
 			consoleFormat += ` | ${metaString}`;
@@ -202,7 +200,6 @@ export class Logger {
 			consoleFormat = `${color}${consoleFormat}${reset}`;
 		}
 
-		// File Format (ohne Farben, strukturiert)
 		let fileFormat = `${timestamp} [${this.instance}] ${levelName.padEnd(8)} ${entry.message}`;
 		if (metaString) {
 			fileFormat += `\n  Metadata: ${metaString}`;
@@ -214,32 +211,28 @@ export class Logger {
 		return { console: consoleFormat, file: fileFormat };
 	}
 
-	// File Logging initialisieren
 	private async initializeFileLogging(): Promise<void> {
 		// FiveM-spezifische File-Initialisierung
 		// const logDir = GetResourcePath(GetCurrentResourceName()) + '/logs/';
 		// Hier würdest du FiveM file operations verwenden
 	}
 
-	// In Datei schreiben
 	private async writeToFile(content: string): Promise<void> {
 		// FiveM file writing logic
 		// Beispiel: appendToFile(this.fileHandle, content + '\n');
 	}
 
-	// In Datenbank schreiben (für wichtige AntiCheat-Events)
 	private async writeToDatabase(entry: LogEntry): Promise<void> {
 		// Database logging für wichtige Events
 		// MySQL.execute('INSERT INTO anticheat_logs ...', [entry]);
 	}
 
-	// An Remote-Server senden
 	private async sendToRemote(entry: LogEntry): Promise<void> {
 		// HTTP request an zentralen Logging-Server
 		// für übergreifende AntiCheat-Analyse
 	}
 
-	// Log-Statistiken
+	// Log-Stats
 	public getStats(): {
 		totalLogs: number;
 		bufferSize: number;
@@ -254,13 +247,11 @@ export class Logger {
 		};
 	}
 
-	// Konfiguration zur Laufzeit ändern
 	public updateConfig(config: Partial<LoggerConfig>): void {
 		this.loggerConfig = { ...this.loggerConfig, ...config };
 		this.info('Logger configuration updated', { newConfig: config });
 	}
 
-	// Log-Level zur Laufzeit ändern
 	public setLogLevel(level: LogLevel): void {
 		this.loggerConfig.minLevel = level;
 		this.info(`Log level changed to ${LogLevel[level]}`);
@@ -289,7 +280,7 @@ export class LoggerFactory {
 	}
 }
 
-// Globaler Logger für einfache Nutzung
+// Global Logger
 export const GlobalLogger = LoggerFactory.create('global', {
 	minLevel: LogLevel.INFO,
 	outputs: [LogOutput.CONSOLE],

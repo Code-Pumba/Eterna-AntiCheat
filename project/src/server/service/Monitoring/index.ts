@@ -3,6 +3,10 @@ import { BaseService } from '..';
 import { ServiceConfig } from '../data';
 import { ResourceState } from './data';
 
+/**
+ * Testing if this could working, for anti injection.
+ * We are getting, the full resource list at the Start.
+ */
 export class MonitoringService extends BaseService {
 	public readonly serviceIdentifier: string = 'monitoring';
 
@@ -29,14 +33,11 @@ export class MonitoringService extends BaseService {
 	}
 
 	protected async onServiceEnable(): Promise<void> {
-		// Service-spezifische Initialisierung
 		this.logger.info('=== AntiCheat Monitoring Service ===');
 
 		while (!this.logger) {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
-
-		// Hier würdest du deine AntiCheat-Logik initialisieren
 
 		let resourcesList = GetNumResources();
 
@@ -47,7 +48,7 @@ export class MonitoringService extends BaseService {
 			this.resourceStates.set(resourceName, resourceState);
 		}
 
-		// Checkup Intervall starten
+		// Checkup Interval
 		this.checkInterval = setInterval(() => {
 			if (!this.isFullyStarted && !this.checkIfServerIsFullyStarted()) {
 				this.isFullyStarted = false;
@@ -100,7 +101,7 @@ export class MonitoringService extends BaseService {
 	}
 
 	protected async onHealthCheck(): Promise<boolean> {
-		// Prüfen ob Service ordnungsgemassen funktioniert
+		//TODO! MISSING HEALTH CHECK
 		return true;
 	}
 }

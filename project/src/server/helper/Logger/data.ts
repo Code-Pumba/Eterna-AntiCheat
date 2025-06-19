@@ -4,10 +4,10 @@ export enum LogLevel {
 	WARNING = 2,
 	ERROR = 3,
 	CRITICAL = 4,
-	SECURITY = 5, // Speziell für AntiCheat-Events
+	SECURITY = 5, // Security Related
 }
 
-// Log-Ausgabeziele
+// Log output types
 export enum LogOutput {
 	CONSOLE = 'console',
 	FILE = 'file',
@@ -22,9 +22,9 @@ export interface LogEntry {
 	instance: string;
 	message: string;
 	metadata?: Record<string, any>;
-	playerId?: string; // Für AntiCheat-spezifische Logs
-	detectionType?: string; // Art der Erkennung
-	severity?: number; // 1-10 Schweregrad
+	playerId?: string;
+	detectionType?: string;
+	severity?: number; // 1-10
 	stackTrace?: string;
 }
 
@@ -36,7 +36,7 @@ export interface LoggerConfig {
 	maxFiles: number;
 	includeStackTrace: boolean;
 	timestampFormat: string;
-	bufferSize: number; // Anzahl Logs im Buffer
+	bufferSize: number; // Logs inside the Buffer
 	flushInterval: number; // ms
 	enableColors: boolean;
 }
