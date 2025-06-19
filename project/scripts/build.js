@@ -7,7 +7,6 @@ const watch = process.argv.includes('--watch');
 const web = await exists('./web');
 const pkg = await getPackage();
 
-// ESBuild Konfiguration
 const baseConfig = {
 	keepNames: true,
 	legalComments: 'inline',
@@ -19,13 +18,12 @@ const baseConfig = {
 	treeShaking: true,
 	sourcemap: watch ? 'inline' : false,
 	logLevel: 'info',
-	metafile: true, // Wichtig für Output-Tracking
+	metafile: true,
 };
 
 const dropLabels = ['$BROWSER'];
 if (!watch) dropLabels.push('$DEV');
 
-// Entry Points dynamisch finden
 const serverEntryPoints = await findEntryPoints('src/server');
 const clientEntryPoints = await findEntryPoints('src/client');
 const sharedEntryPoints = await findEntryPoints('src/shared');
@@ -34,7 +32,6 @@ console.log(`📁 Found ${serverEntryPoints.length} server entry points`);
 console.log(`📁 Found ${clientEntryPoints.length} client entry points`);
 console.log(`📁 Found ${sharedEntryPoints.length} shared entry points`);
 
-// Server Build Konfiguration
 const serverConfig = {
 	...baseConfig,
 	entryPoints: [...serverEntryPoints, ...sharedEntryPoints],
@@ -46,7 +43,6 @@ const serverConfig = {
 	external: ['@citizenfx/server'],
 };
 
-// Client Build Konfiguration
 const clientConfig = {
 	...baseConfig,
 	entryPoints: [...clientEntryPoints, ...sharedEntryPoints],
@@ -58,7 +54,6 @@ const clientConfig = {
 	external: ['@citizenfx/client'],
 };
 
-// Funktion zum Erstellen der fxmanifest.lua
 async function createFxmanifest(config) {
 	const manifest = `fx_version 'cerulean'
 game 'gta5'
@@ -110,7 +105,6 @@ ${
 	console.log('✅ fxmanifest.lua created');
 }
 
-// Funktion zum Sammeln der Build-Outputs
 function collectOutputFiles(results) {
 	const outputs = {
 		client: [],
@@ -129,7 +123,6 @@ function collectOutputFiles(results) {
 	return outputs;
 }
 
-// Watch-Modus Plugin
 const watchPlugin = {
 	name: 'watch-plugin',
 	setup(build) {
@@ -143,16 +136,13 @@ const watchPlugin = {
 	},
 };
 
-// Haupt-Build-Funktion
 async function runBuild() {
 	try {
 		console.log('🚀 Starting ESBuild...');
 
-		// Watch-Modus
 		if (watch) {
 			const contexts = [];
 
-			// Server Watch
 			if (serverConfig.entryPoints.length > 0) {
 				const serverContext = await build({
 					...serverConfig,
@@ -163,7 +153,6 @@ async function runBuild() {
 				console.log('👀 Server watching for changes...');
 			}
 
-			// Client Watch
 			if (clientConfig.entryPoints.length > 0) {
 				const clientContext = await build({
 					...clientConfig,
@@ -174,7 +163,6 @@ async function runBuild() {
 				console.log('👀 Client watching for changes...');
 			}
 
-			// Web Watch-Modus
 			if (web) {
 				console.log('🌐 Starting web watch mode...');
 				exec('cd ./web && vite build --watch');
@@ -184,11 +172,9 @@ async function runBuild() {
 			return;
 		}
 
-		// Warten auf alle Builds (nur im normalen Modus)
 		if (!watch) {
 			const buildPromises = [];
 
-			// Nur bauen wenn Entry Points vorhanden sind
 			if (serverConfig.entryPoints.length > 0) {
 				buildPromises.push(build(serverConfig));
 			}
@@ -208,15 +194,13 @@ async function runBuild() {
 			console.log('Server outputs:', outputs.server);
 			console.log('Client outputs:', outputs.client);
 
-			// Web Build
 			if (web) {
 				console.log('🌐 Building web...');
 				await exec('cd ./web && vite build');
 			}
 
-			// FXManifest erstellen
 			const staticFiles = await getFiles('dist/web', 'static', 'locales');
-			// Pfade normalisieren (Windows -> Unix)
+
 			const normalizedFiles = staticFiles.map((file) => file.replaceAll('\\', '/'));
 
 			await createFxmanifest({
@@ -233,13 +217,11 @@ async function runBuild() {
 			console.log(outputs.client.length > 0 ? '✅ Client build completed' : '⚠️  Client build skipped (no entry points)');
 			console.log(outputs.server.length > 0 ? '✅ Server build completed' : '⚠️  Server build skipped (no entry points)');
 
-			// Dateien kopieren (fxmanifest.lua separat hinzufügen, nicht als Directory)
 			const allFiles = await getFiles('dist', 'static', 'locales', 'web/dist');
 			await copyFilesWithStructure([...allFiles, 'fxmanifest.lua'], 'server-ready');
 
 			console.log('✅ Build completed successfully!');
 		} else {
-			// Web Watch-Modus
 			if (web) {
 				console.log('🌐 Starting web watch mode...');
 				exec('cd ./web && vite build --watch');
@@ -253,5 +235,4 @@ async function runBuild() {
 	}
 }
 
-// Build starten
 runBuild();
