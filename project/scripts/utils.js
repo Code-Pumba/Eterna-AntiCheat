@@ -128,9 +128,9 @@ export async function findEntryPoints(dir, extensions = ['.js', '.ts']) {
  */
 export async function copyFilesWithStructure(files, destBase, options = {}) {
 	const {
-		obfuscateJs = true,
+		obfuscateJs = false,
 		clean = true,
-		preserveStructure = true,
+		preserveStructure = false,
 		verbose = true, // Standardmäßig verbose für bessere Diagnose
 	} = options;
 

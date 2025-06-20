@@ -1,23 +1,44 @@
 import { BaseService } from './service';
+import { DatabaseService } from './service/Database';
 import { ServiceManager } from './service/manager';
 import { MonitoringService } from './service/Monitoring';
 
 export interface IBoot {
+	/**
+	 * Registers a Service into the Application
+	 * @param service
+	 */
 	registerService(service: any): void;
+	/**
+	 *
+	 * @param controller
+	 */
 	registerController(controller: any): void;
+	/**
+	 * Initialize AntiCheat
+	 */
 	initializeAntiCheat(): Promise<void>;
+	/**
+	 * Destroy AntiCheat
+	 */
 	destroyAntiCheat(): Promise<void>;
 
 	// Getter
-	getServiceManager(): any;
+	/**
+	 * Returns the ServiceManager
+	 * @returns {ServiceManager}
+	 */
+	getServiceManager(): ServiceManager;
+	/**
+	 * Returns the ControllerManager
+	 * @returns {Error}
+	 */
 	getControllerManager(): any;
 }
 
 export class Bootstrap implements IBoot {
 	private serviceManager: ServiceManager;
-	private controllerManager: any;
-
-	private initialized: boolean = false;
+	// private controllerManager: any; // TODO: Implement
 
 	constructor() {
 		this.serviceManager = new ServiceManager();
@@ -36,6 +57,7 @@ export class Bootstrap implements IBoot {
 
 	public async initializeAntiCheat(): Promise<void> {
 		// Add Services
+		this.registerService(new DatabaseService());
 		this.registerService(new MonitoringService());
 		// Init Services
 		await this.serviceManager.start();

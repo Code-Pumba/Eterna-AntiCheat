@@ -18,7 +18,7 @@ const baseConfig = {
 	treeShaking: true,
 	sourcemap: watch ? 'inline' : false,
 	logLevel: 'info',
-	metafile: true,
+	metafile: false,
 };
 
 const dropLabels = ['$BROWSER'];
@@ -34,8 +34,8 @@ console.log(`📁 Found ${sharedEntryPoints.length} shared entry points`);
 
 const serverConfig = {
 	...baseConfig,
-	entryPoints: [...serverEntryPoints, ...sharedEntryPoints],
-	outdir: 'dist/server',
+	entryPoints: ['./src/server/index.ts'],
+	outfile: 'dist/server.js',
 	platform: 'node',
 	target: ['node22'],
 	format: 'cjs',
@@ -45,14 +45,17 @@ const serverConfig = {
 
 const clientConfig = {
 	...baseConfig,
-	entryPoints: [...clientEntryPoints, ...sharedEntryPoints],
-	outdir: 'dist/client',
+	entryPoints: ['./src/client/index.ts'],
+	outfile: 'dist/client.js',
 	platform: 'browser',
 	target: ['es2021'],
 	format: 'iife',
 	dropLabels: [...dropLabels, '$SERVER'],
 	external: ['@citizenfx/client'],
 };
+
+/// KEEP: ${config.client_scripts.map((script) => `'${script}'`).join(',\n    ')}
+/// KEEP: ${config.server_scripts.map((script) => `'${script}'`).join(',\n    ')}
 
 async function createFxmanifest(config) {
 	const manifest = `fx_version 'cerulean'
@@ -62,6 +65,7 @@ name '${pkg.name || 'Unknown'}'
 version '${pkg.version || '1.0.0'}'
 description '${pkg.description || ''}'
 author '${pkg.author || 'Unknown'}'
+node_version "22"
 
 lua54 'yes'
 use_experimental_fxv2_oal 'yes'
@@ -69,7 +73,7 @@ use_experimental_fxv2_oal 'yes'
 ${
 	config.client_scripts
 		? `client_scripts {
-    ${config.client_scripts.map((script) => `'${script}'`).join(',\n    ')}
+    'dist/client.js'
 }`
 		: ''
 }
@@ -77,7 +81,7 @@ ${
 ${
 	config.server_scripts
 		? `server_scripts {
-    ${config.server_scripts.map((script) => `'${script}'`).join(',\n    ')}
+	'dist/server.js'
 }`
 		: ''
 }
@@ -114,6 +118,7 @@ function collectOutputFiles(results) {
 	results.forEach((result, index) => {
 		if (result.metafile && result.metafile.outputs) {
 			const type = index === 0 ? 'server' : 'client';
+			// @ts-ignore
 			outputs[type] = Object.keys(result.metafile.outputs)
 				.filter((file) => file.endsWith('.js'))
 				.map((file) => file.replaceAll('\\', '/'));
