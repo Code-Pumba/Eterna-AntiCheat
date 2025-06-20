@@ -1,3 +1,3 @@
 {
-	"framework": "none" // If you use esx or qbx_core it will autodetect it, otherwise set here your resource name of your core
+	"core": "esx" // if u use esx or qbx and changed the folder name of the core resource, change it here otherwise let it as is
 }

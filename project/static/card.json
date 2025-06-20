@@ -1,0 +1,139 @@
+{
+	"$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+	"type": "AdaptiveCard",
+	"version": "1.5",
+	"body": [
+		{
+			"type": "ProgressBar"
+		},
+		{
+			"type": "Container",
+			"items": [
+				{
+					"type": "TextBlock",
+					"text": "🛡️ Welcome to Eterna Anti-Cheat",
+					"weight": "Bolder",
+					"size": "ExtraLarge",
+					"wrap": true,
+					"horizontalAlignment": "Center"
+				},
+				{
+					"type": "TextBlock",
+					"text": "Your session is being secured.",
+					"isSubtle": true,
+					"wrap": true,
+					"horizontalAlignment": "Center"
+				}
+			],
+			"style": "emphasis",
+			"bleed": true
+		},
+		{
+			"type": "Container",
+			"spacing": "Medium",
+			"items": [
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "👥 Active Players",
+									"weight": "Bolder",
+									"wrap": true,
+									"horizontalAlignment": "Center"
+								},
+								{
+									"type": "TextBlock",
+									"text": "##ACTIVE_PLAYERS##",
+									"size": "Large",
+									"weight": "Bolder",
+									"horizontalAlignment": "Center",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "🔨 Banned Players",
+									"weight": "Bolder",
+									"wrap": true,
+									"horizontalAlignment": "Center"
+								},
+								{
+									"type": "TextBlock",
+									"text": "##BANNED_PLAYERS##",
+									"size": "Large",
+									"weight": "Bolder",
+									"horizontalAlignment": "Center",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "⏳ Queue Position",
+									"weight": "Bolder",
+									"wrap": true,
+									"horizontalAlignment": "Center"
+								},
+								{
+									"type": "TextBlock",
+									"text": "# ##QUEUE_POSITION##",
+									"size": "Large",
+									"weight": "Bolder",
+									"color": "Attention",
+									"horizontalAlignment": "Center",
+									"wrap": true
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "TextBlock",
+			"text": "⚠️ Follow the rules to ensure fair play.",
+			"wrap": true,
+			"spacing": "Large",
+			"horizontalAlignment": "Center",
+			"color": "Attention",
+			"weight": "Bolder"
+		},
+		{
+			"type": "TextBlock",
+			"text": "“Eterna is watching over you.”",
+			"wrap": true,
+			"horizontalAlignment": "Center",
+			"spacing": "Medium",
+			"isSubtle": true
+		},
+		{
+			"type": "TextBlock",
+			"text": "Having issues? Contact us on Discord or visit eterna.gg/support",
+			"wrap": true,
+			"horizontalAlignment": "Center",
+			"spacing": "Medium",
+			"size": "Small",
+			"isSubtle": true
+		},
+		{
+			"type": "ProgressBar"
+		},
+		{
+			"type": "ProgressBar"
+		}
+	]
+}
