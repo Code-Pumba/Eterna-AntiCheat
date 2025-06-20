@@ -34,6 +34,8 @@ export class ServiceManager {
 		const sortedServices = this.getSortedServices();
 		const errors: Error[] = [];
 
+		this.logger.warning('We begin starting the Services!');
+
 		for (const service of sortedServices) {
 			try {
 				await service.onEnable();

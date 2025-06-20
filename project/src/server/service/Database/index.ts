@@ -73,8 +73,6 @@ export class DatabaseService extends BaseService {
 			const connection = await this.pool.getConnection();
 			await connection.ping();
 			connection.release();
-
-			this.logger.info('Database Service successfully started');
 		} catch (error) {
 			this.logger.error('Failed to start Database Service:', error);
 			throw error;

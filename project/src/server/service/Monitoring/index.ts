@@ -33,12 +33,6 @@ export class MonitoringService extends BaseService {
 	}
 
 	protected async onServiceEnable(): Promise<void> {
-		this.logger.info('=== AntiCheat Monitoring Service ===');
-
-		while (!this.logger) {
-			await new Promise((resolve) => setTimeout(resolve, 100));
-		}
-
 		let resourcesList = GetNumResources();
 
 		// Get Resources Initial
@@ -61,8 +55,6 @@ export class MonitoringService extends BaseService {
 
 			this.checkupResources();
 		}, this.checkupInterval);
-
-		this.logger.info(' === AntiCheat Monitoring Service started  ===');
 	}
 
 	private checkIfServerIsFullyStarted(): boolean {

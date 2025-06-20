@@ -38,9 +38,9 @@ export class Logger {
 			this.flushBuffer();
 		}, this.loggerConfig.flushInterval);
 
-		this.info('Created a Logger Instance', {
-			instance: this.instance,
-		});
+		// this.info('Created a Logger Instance', {
+		// 	instance: this.instance,
+		// });
 	}
 
 	// Stop Method
@@ -189,7 +189,7 @@ export class Logger {
 		const metaString = entry.metadata ? JSON.stringify(entry.metadata) : '';
 
 		// Console Format (with colors)
-		let consoleFormat = `[${timestamp}][${levelName}][${this.instance}]\n ${entry.message}`;
+		let consoleFormat = `[${timestamp}][${levelName}][${this.instance}] ${entry.message}`;
 		if (metaString) {
 			consoleFormat += ` | ${metaString}`;
 		}
