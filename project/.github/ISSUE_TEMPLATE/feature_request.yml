@@ -1,0 +1,24 @@
+name: 💡 Feature Request
+description: Suggest a new idea or enhancement
+title: '[FEATURE] '
+labels: [enhancement]
+body:
+    - type: input
+      id: summary
+      attributes:
+          label: Summary
+          placeholder: A short description of the feature
+    - type: textarea
+      id: motivation
+      attributes:
+          label: Why is this feature useful?
+    - type: textarea
+      id: implementation
+      attributes:
+          label: Proposed implementation (optional)
+          placeholder: How do you imagine this feature being implemented?
+	- type: textarea
+	  id: alternatives
+	  attributes:
+		  label: Alternatives considered (optional)
+		  placeholder: What are other ways to implement this feature?
