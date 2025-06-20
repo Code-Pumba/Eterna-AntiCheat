@@ -17,7 +17,7 @@ export interface IBoot {
 	/**
 	 * Initialize AntiCheat
 	 */
-	initializeAntiCheat(): Promise<void>;
+	initializeAntiCheat(): Promise<boolean>;
 	/**
 	 * Destroy AntiCheat
 	 */
@@ -55,12 +55,18 @@ export class Bootstrap implements IBoot {
 		throw new Error('Method not implemented.');
 	}
 
-	public async initializeAntiCheat(): Promise<void> {
-		// Add Services
-		this.registerService(new DatabaseService());
-		this.registerService(new MonitoringService());
-		// Init Services
-		await this.serviceManager.start();
+	public async initializeAntiCheat(): Promise<boolean> {
+		try {
+			// Add Services
+			this.registerService(new DatabaseService());
+			this.registerService(new MonitoringService());
+			// Init Services
+			await this.serviceManager.start();
+			return true;
+		} catch (error) {
+			console.error(error);
+			return false;
+		}
 	}
 
 	public destroyAntiCheat(): Promise<void> {
