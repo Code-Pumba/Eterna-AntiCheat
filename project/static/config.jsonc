@@ -1,1 +1,3 @@
-{}
+{
+	"framework": "none" // If you use esx or qbx_core it will autodetect it, otherwise set here your resource name of your core
+}

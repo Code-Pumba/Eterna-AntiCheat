@@ -10,6 +10,8 @@ import { ResourceState } from './data';
 export class MonitoringService extends BaseService {
 	public readonly serviceIdentifier: string = 'monitoring';
 
+	private gamemode: string = null;
+
 	public readonly config: ServiceConfig = {
 		priority: 500,
 		dependencies: [],
@@ -55,6 +57,19 @@ export class MonitoringService extends BaseService {
 
 			this.checkupResources();
 		}, this.checkupInterval);
+
+		// Get Gamemode
+		this.gamemode =
+			['qbx_core', 'es_extended']
+				.find((framework) => this.allowedResources.has(framework))
+				?.replace('qbx_core', 'qbx')
+				?.replace('es_extended', 'esx') || 'unknown';
+
+		this.logger.info(`We Found ${this.gamemode === 'esx' ? 'ESX' : 'QBX'} Framework`);
+	}
+
+	public getUserFramework(): string {
+		return this.gamemode;
 	}
 
 	private checkIfServerIsFullyStarted(): boolean {
