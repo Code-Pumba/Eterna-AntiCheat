@@ -13,21 +13,26 @@ export class ServiceManager {
 		this.logger = LoggerFactory.create('service-manager');
 	}
 
-	public register(service: BaseService) {
-		if (this.services.has(service.serviceIdentifier)) {
-			this.logger.warning(`We couldn't register service "${service.serviceIdentifier}" because it already exists!`);
-			return;
-		}
-
-		for (const dep of service.config.dependencies) {
-			if (this.services.has(dep)) {
-				this.logger.error(`We couldn't register service "${service.serviceIdentifier}" because it depends on "${dep}" which doesn't exist!`);
+	public async register(service: BaseService) {
+		return new Promise<void>((resolve, reject) => {
+			if (this.services.has(service.serviceIdentifier)) {
+				this.logger.warning(`We couldn't register service "${service.serviceIdentifier}" because it already exists!`);
+				reject(new Error(`Service "${service.serviceIdentifier}" already registered!`));
 				return;
 			}
-		}
 
-		this.services.set(service.serviceIdentifier, service);
-		this.logger.info(`Service "${service.serviceIdentifier}" registered successfully!`);
+			for (const dep of service.config.dependencies) {
+				if (!this.services.has(dep)) {
+					this.logger.error(`We couldn't register service "${service.serviceIdentifier}" because it depends on "${dep}" which doesn't exist!`);
+					reject(new Error(`Service "${service.serviceIdentifier}" depends on "${dep}" which doesn't exist!`));
+					return;
+				}
+			}
+
+			this.services.set(service.serviceIdentifier, service);
+			this.logger.info(`Service "${service.serviceIdentifier}" registered successfully!`);
+			return resolve();
+		});
 	}
 
 	public async start() {

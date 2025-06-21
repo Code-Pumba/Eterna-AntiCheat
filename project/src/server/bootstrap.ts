@@ -1,5 +1,7 @@
+import { sleep } from './helper/utils';
 import { BaseService } from './service';
 import { DatabaseService } from './service/Database';
+import { BanEntityService } from './service/Entities/BanEntityService';
 import { ServiceManager } from './service/manager';
 import { MonitoringService } from './service/Monitoring';
 
@@ -44,11 +46,11 @@ export class Bootstrap implements IBoot {
 		this.serviceManager = new ServiceManager();
 	}
 
-	public registerService(service: BaseService) {
+	public async registerService(service: BaseService) {
 		if (this.serviceManager.getService(service.serviceIdentifier)) {
 			throw new Error(`Service ${service.serviceIdentifier} already registered!`);
 		}
-		this.serviceManager.register(service);
+		await this.serviceManager.register(service);
 	}
 
 	public registerController(controller: any) {
@@ -58,8 +60,12 @@ export class Bootstrap implements IBoot {
 	public async initializeAntiCheat(): Promise<boolean> {
 		try {
 			// Add Services
-			this.registerService(new DatabaseService());
-			this.registerService(new MonitoringService());
+			await this.registerService(new DatabaseService());
+			await this.registerService(new MonitoringService());
+
+			// Add Database Services
+			await this.registerService(new BanEntityService());
+
 			// Init Services
 			await this.serviceManager.start();
 			return true;
