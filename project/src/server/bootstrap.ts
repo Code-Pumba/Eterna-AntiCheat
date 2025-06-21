@@ -1,3 +1,4 @@
+import { ControllerManager } from './controller/manager';
 import { sleep } from './helper/utils';
 import { BaseService } from './service';
 import { DatabaseService } from './service/Database';
@@ -34,15 +35,18 @@ export interface IBoot {
 	 * Returns the ControllerManager
 	 * @returns {Error}
 	 */
-	getControllerManager(): any;
+	getControllerManager(): ControllerManager;
 }
 
 export class Bootstrap implements IBoot {
 	private serviceManager: ServiceManager;
-	// private controllerManager: any; // TODO: Implement
+	private controllerManager: ControllerManager;
+
+	private initialized: boolean = false;
 
 	constructor() {
 		this.serviceManager = new ServiceManager();
+		this.controllerManager = new ControllerManager();
 	}
 
 	public async registerService(service: BaseService) {
@@ -64,11 +68,20 @@ export class Bootstrap implements IBoot {
 
 			// Init Services
 			await this.serviceManager.start();
+
+			// Wait for Services to be ready
+			await sleep(1000);
+			this.initialized = true;
+
 			return true;
 		} catch (error) {
 			console.error(error);
 			return false;
 		}
+	}
+
+	public get isReady(): boolean {
+		return this.initialized;
 	}
 
 	public destroyAntiCheat(): Promise<void> {
@@ -79,7 +92,7 @@ export class Bootstrap implements IBoot {
 		return this.serviceManager;
 	}
 
-	public getControllerManager(): any {
-		throw new Error('Method not implemented.');
+	public getControllerManager(): ControllerManager {
+		return this.controllerManager;
 	}
 }
