@@ -1,9 +1,15 @@
+import { bootstrap } from '..';
+import { Bootstrap } from '../bootstrap';
 import { GlobalLogger, Logger } from '../helper/Logger';
 import { ServiceStatus, ServiceConfig } from './data';
+import { ServiceManager } from './manager';
 
 export abstract class BaseService {
 	public abstract readonly serviceIdentifier: string;
 	public abstract readonly config: ServiceConfig;
+
+	// Getting Bootstrap Class at the Beginning to reduce the amount of calls
+	private bootstrap: Bootstrap = bootstrap;
 
 	public _status: ServiceStatus = ServiceStatus.DISABLED;
 	public _lastError: Error | null = null;
@@ -18,6 +24,10 @@ export abstract class BaseService {
 
 	public get status(): ServiceStatus {
 		return this._status;
+	}
+
+	public get serviceManager(): ServiceManager {
+		return this.bootstrap.getServiceManager();
 	}
 
 	public get uptime(): number {

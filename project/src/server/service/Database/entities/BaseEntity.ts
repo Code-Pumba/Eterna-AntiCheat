@@ -13,9 +13,9 @@ export abstract class BaseEntity {
 		this.updatedAt = new Date();
 	}
 
-	public abstract toObject(): Record<string, any>;
+	protected abstract toObject(): Record<string, any>;
 
-	public abstract toString(): string;
+	protected abstract toString(): string;
 
-	public abstract toJSON(): Record<string, any>;
+	protected abstract toJSON(): string;
 }

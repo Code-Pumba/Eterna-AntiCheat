@@ -22,7 +22,7 @@ export class DatabaseService extends BaseService {
 	public readonly config: ServiceConfig = {
 		priority: 1000,
 		dependencies: [],
-		timeout: 5000,
+		timeout: 1000,
 		restartOnError: true,
 	};
 
