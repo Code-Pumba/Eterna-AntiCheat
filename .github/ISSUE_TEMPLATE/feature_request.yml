@@ -17,7 +17,7 @@ body:
     attributes:
       label: Proposed implementation (optional)
       placeholder: How do you imagine this feature being implemented?
-  - type:
+  - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered (optional)
