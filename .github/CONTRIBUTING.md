@@ -4,15 +4,15 @@ Thanks for your interest in contributing to **EAntiCheat**, a modular anti-cheat
 
 ## How to Contribute
 
--   Report bugs via [Issues](../../issues)
--   Suggest features via [Feature Request template](../../issues/new?template=feature_request.yml)
--   Submit Pull Requests for improvements or fixes
+- Report bugs via [Issues](../../issues)
+- Suggest features via [Feature Request template](../../issues/new?template=feature_request.yml)
+- Submit Pull Requests for improvements or fixes
 
 ## Guidelines
 
--   Stick to existing style (use tabs, no semicolons, snake_case for events)
--   Test your changes before submitting
--   Use meaningful commit messages (e.g. `fix(client): spectate detection bug`)
+- Stick to existing style (use tabs)
+- Test your changes before submitting
+- Use meaningful commit messages (e.g. `fix(client): spectate detection bug`)
 
 ## Development Setup
 
