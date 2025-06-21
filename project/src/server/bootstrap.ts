@@ -1,7 +1,6 @@
 import { sleep } from './helper/utils';
 import { BaseService } from './service';
 import { DatabaseService } from './service/Database';
-import { BanEntityService } from './service/Entities/BanEntityService';
 import { ServiceManager } from './service/manager';
 import { MonitoringService } from './service/Monitoring';
 
@@ -62,9 +61,6 @@ export class Bootstrap implements IBoot {
 			// Add Services
 			await this.registerService(new DatabaseService());
 			await this.registerService(new MonitoringService());
-
-			// Add Database Services
-			await this.registerService(new BanEntityService());
 
 			// Init Services
 			await this.serviceManager.start();
