@@ -122,6 +122,7 @@ export class Logger {
 
 		const entry: LogEntry = {
 			timestamp: Date.now(),
+			preciseTimestamp: performance.now(),
 			level,
 			instance: this.instance,
 			message,
@@ -149,12 +150,22 @@ export class Logger {
 	private async flushBuffer(): Promise<void> {
 		if (this.logBuffer.length === 0) return;
 
-		const entries = [...this.logBuffer];
+		const entries = this.sortLogEntries([...this.logBuffer]);
 		this.logBuffer = [];
 
 		for (const entry of entries) {
 			await this.outputLog(entry);
 		}
+	}
+
+	private sortLogEntries(entries: LogEntry[]): LogEntry[] {
+		return entries.sort((a, b) => {
+			if (a.timestamp !== b.timestamp) {
+				return a.timestamp - b.timestamp;
+			}
+
+			return a.preciseTimestamp - b.preciseTimestamp;
+		});
 	}
 
 	// Output Log
