@@ -1,3 +1,5 @@
+import { bootstrap } from '..';
+import { ServiceManager } from '../service/manager';
 import { ControllerConfig, ControllerStatus, ControllerType } from './data';
 
 export abstract class BaseController {
@@ -9,6 +11,8 @@ export abstract class BaseController {
 	protected _lastError: Error | null = null;
 	protected _startTime: number | null = null;
 
+	protected readonly _serviceManager: ServiceManager;
+
 	protected eventName?: string;
 	protected eventListener?: (...args: any[]) => void;
 
@@ -16,6 +20,7 @@ export abstract class BaseController {
 
 	constructor(eventName?: string) {
 		this.eventName = eventName;
+		this._serviceManager = bootstrap.getServiceManager();
 	}
 
 	public get status(): ControllerStatus {
@@ -24,6 +29,10 @@ export abstract class BaseController {
 
 	public get uptime(): number {
 		return this._startTime ? Date.now() - this._startTime : 0;
+	}
+
+	public get serviceManager(): ServiceManager {
+		return this._serviceManager;
 	}
 
 	public get isHealthy(): boolean {

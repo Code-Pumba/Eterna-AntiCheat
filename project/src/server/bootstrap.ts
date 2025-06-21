@@ -1,4 +1,6 @@
+import { PlayerConnectController } from './controller/Connect/playerConnectController';
 import { ControllerManager } from './controller/manager';
+import { Logger, LoggerFactory } from './helper/Logger';
 import { sleep } from './helper/utils';
 import { BaseService } from './service';
 import { DatabaseService } from './service/Database';
@@ -42,40 +44,64 @@ export class Bootstrap implements IBoot {
 	private serviceManager: ServiceManager;
 	private controllerManager: ControllerManager;
 
+	private readonly logger: Logger;
+
 	private initialized: boolean = false;
 
 	constructor() {
+		this.logger = LoggerFactory.create('bootstrap');
 		this.serviceManager = new ServiceManager();
 		this.controllerManager = new ControllerManager();
 	}
 
-	public async registerService(service: BaseService) {
-		if (this.serviceManager.getService(service.serviceIdentifier)) {
-			throw new Error(`Service ${service.serviceIdentifier} already registered!`);
+	public async registerService(): Promise<boolean> {
+		try {
+			const promise = [this.serviceManager.register(new DatabaseService()), this.serviceManager.register(new MonitoringService())];
+
+			await Promise.allSettled(promise);
+			await this.serviceManager.start();
+			return true;
+		} catch (error) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			this.logger.error('Error while registering services:', err);
+			return false;
 		}
-		await this.serviceManager.register(service);
 	}
 
-	public registerController(controller: any) {
-		throw new Error('Method not implemented.');
+	public async registerController(controller: any): Promise<boolean> {
+		try {
+			const promise = [this.controllerManager.registerController(new PlayerConnectController())];
+			await Promise.allSettled(promise);
+			await this.controllerManager.startAll();
+			return true;
+		} catch (error) {
+			const err = error instanceof Error ? error : new Error(String(error));
+			this.logger.error('Error while registering services:', err);
+			return false;
+		}
 	}
 
 	public async initializeAntiCheat(): Promise<boolean> {
 		try {
-			// Add Services
-			await this.registerService(new DatabaseService());
-			await this.registerService(new MonitoringService());
-
-			// Init Services
-			await this.serviceManager.start();
+			const servicesRegistered = await this.registerService();
+			if (!servicesRegistered) {
+				throw new Error('Failed to register services');
+			}
 
 			// Wait for Services to be ready
-			await sleep(1000);
+			await sleep(2500);
+
+			const controllersRegistered = await this.registerController(null);
+			if (!controllersRegistered) {
+				throw new Error('Failed to register controllers');
+			}
+
 			this.initialized = true;
 
 			return true;
 		} catch (error) {
-			console.error(error);
+			const err = error instanceof Error ? error : new Error(String(error));
+			this.logger.error('Error while registering services:', err);
 			return false;
 		}
 	}
