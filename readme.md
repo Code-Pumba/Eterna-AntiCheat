@@ -64,6 +64,11 @@ This will compile and optionally obfuscate your code for production.
   - Advanced rule engine
   - Cloud-based detection
 
+## Contact
+
+- Discord: revolutionpumba
+- Discord-Server: https://discord.gg/wfXfKzHFJw
+
 ## ❤️ Contributing
 
 Pull requests are welcome. For major changes, open an issue first to discuss what you would like to change.
