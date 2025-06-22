@@ -1,5 +1,6 @@
 import { BaseController } from '.';
-import { Logger, LoggerFactory } from '../helper/Logger';
+import { Logger } from '../helper/Logger';
+import { LoggerFactory } from '../helper/Logger/factory';
 import { ControllerManagerOptions, ControllerStatus } from './data';
 
 export class ControllerManager {

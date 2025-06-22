@@ -1,5 +1,6 @@
 import { BaseService } from '.';
-import { Logger, LoggerFactory } from '../helper/Logger';
+import { Logger } from '../helper/Logger';
+import { LoggerFactory } from '../helper/Logger/factory';
 import { ServiceEvent, ServiceStatus } from './data';
 
 export class ServiceManager {

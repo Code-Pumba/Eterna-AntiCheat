@@ -1,8 +1,9 @@
 import { Bootstrap } from './bootstrap';
-import { GlobalLogger, Logger } from './helper/Logger';
+import { Logger } from './helper/Logger';
+import { LoggerFactory } from './helper/Logger/factory';
 
 export const bootstrap = new Bootstrap();
-const logger: Logger = GlobalLogger;
+const logger: Logger = LoggerFactory.create('main');
 
 async function main() {
 	const isInitialized = await bootstrap.initializeAntiCheat();

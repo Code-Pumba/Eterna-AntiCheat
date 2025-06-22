@@ -1,6 +1,7 @@
 import { bootstrap } from '..';
 import { Bootstrap } from '../bootstrap';
-import { GlobalLogger, Logger } from '../helper/Logger';
+import { Logger } from '../helper/Logger';
+import { LoggerFactory } from '../helper/Logger/factory';
 import { ServiceStatus, ServiceConfig } from './data';
 import { ServiceManager } from './manager';
 
@@ -14,6 +15,7 @@ export abstract class BaseService {
 	public _status: ServiceStatus = ServiceStatus.DISABLED;
 	public _lastError: Error | null = null;
 	private _startTime: number | null = null;
+	private privateClassLogger: Logger = LoggerFactory.create('server');
 
 	/**
 	 * Abstract methods
@@ -55,7 +57,7 @@ export abstract class BaseService {
 		} catch (error) {
 			this._status = ServiceStatus.ERROR;
 			this._lastError = error instanceof Error ? error : new Error(String(error));
-			GlobalLogger.error(`[AntiCheat][${this.serviceIdentifier}] Service couldnt be enabled!`, { error: this._lastError });
+			throw error;
 		}
 	}
 

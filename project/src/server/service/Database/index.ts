@@ -1,8 +1,9 @@
 import { createPool, Pool, PoolConnection, PoolOptions } from 'mysql2/promise';
 import { BaseService } from '..';
 import { ServiceConfig } from '../data';
-import { Logger, LoggerFactory } from '../../helper/Logger';
+import { Logger } from '../../helper/Logger';
 import { formatConvar } from './helper';
+import { LoggerFactory } from '../../helper/Logger/factory';
 
 export interface DatabaseConfig {
 	host: string;

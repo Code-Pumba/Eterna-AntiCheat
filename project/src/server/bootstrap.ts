@@ -1,11 +1,13 @@
 import { PlayerConnectController } from './controller/Connect/playerConnectController';
 import { ControllerManager } from './controller/manager';
-import { Logger, LoggerFactory } from './helper/Logger';
+import { Logger } from './helper/Logger';
+import { LoggerFactory } from './helper/Logger/factory';
 import { sleep } from './helper/utils';
 import { BaseService } from './service';
 import { DatabaseService } from './service/Database';
 import { ServiceManager } from './service/manager';
 import { MonitoringService } from './service/Monitoring';
+import { Resources } from './service/Monitoring/resources';
 
 export interface IBoot {
 	/**
@@ -56,7 +58,8 @@ export class Bootstrap implements IBoot {
 
 	public async registerService(): Promise<boolean> {
 		try {
-			const promise = [this.serviceManager.register(new DatabaseService()), this.serviceManager.register(new MonitoringService())];
+			// Here are all the Services to be registered
+			const promise = [this.serviceManager.register(new DatabaseService()), this.serviceManager.register(new MonitoringService()), this.serviceManager.register(new Resources())];
 
 			await Promise.allSettled(promise);
 			await this.serviceManager.start();
@@ -70,7 +73,9 @@ export class Bootstrap implements IBoot {
 
 	public async registerController(controller: any): Promise<boolean> {
 		try {
+			// Here are all the Controller to be registered
 			const promise = [this.controllerManager.registerController(new PlayerConnectController())];
+
 			await Promise.allSettled(promise);
 			await this.controllerManager.startAll();
 			return true;

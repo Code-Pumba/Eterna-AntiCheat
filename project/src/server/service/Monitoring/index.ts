@@ -1,8 +1,9 @@
-import { LoggerFactory, Logger } from '../../helper/Logger';
+import { Logger } from '../../helper/Logger';
 import { BaseService } from '..';
 import { ServiceConfig } from '../data';
 import { ResourceState } from './data';
 import { sleep } from '../../helper/utils';
+import { LoggerFactory } from '../../helper/Logger/factory';
 
 export class MonitoringService extends BaseService {
 	public readonly serviceIdentifier: string = 'monitoring';
@@ -216,7 +217,7 @@ export class MonitoringService extends BaseService {
 			const monitoredCount = this.allowedResources.size;
 
 			const discrepancy = Math.abs(resourceCount - monitoredCount);
-			const maxDiscrepancy = Math.max(5, resourceCount * 0.1); // 10%
+			const maxDiscrepancy = Math.max(5, resourceCount * 0.1); // 10% Maybe Lower? Or maybe we dont even need this.
 
 			if (discrepancy > maxDiscrepancy) {
 				this.logger.warning(`Health Check was unsuccessful: Large discrepancy between current (${resourceCount}) and monitored (${monitoredCount}) resources`);
