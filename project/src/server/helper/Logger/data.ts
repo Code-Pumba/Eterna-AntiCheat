@@ -18,7 +18,6 @@ export enum LogOutput {
 // Log-Entry Interface
 export interface LogEntry {
 	timestamp: number;
-	preciseTimestamp: number; // performance.now();
 	level: LogLevel;
 	instance: string;
 	message: string;
