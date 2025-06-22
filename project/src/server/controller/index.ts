@@ -116,14 +116,11 @@ export abstract class BaseController {
 			return;
 		}
 
-		this.eventListener = (...args: any[]) => {
+		this.eventListener = async (...args: any[]) => {
 			try {
 				const result = this.onEventHandler!(...args);
 				if (result instanceof Promise) {
-					result.catch((error) => {
-						this._lastError = error instanceof Error ? error : new Error(String(error));
-						console.error(`Event handler error in ${this.controllerIdentifier}:`, error);
-					});
+					await result; // ← Hier fehlt das await!
 				}
 			} catch (error) {
 				this._lastError = error instanceof Error ? error : new Error(String(error));
@@ -131,7 +128,7 @@ export abstract class BaseController {
 			}
 		};
 
-		addEventListener(this.eventName, this.eventListener);
+		addEventListener(this.eventName, this.eventListener, true);
 	}
 
 	private unregisterEventListener(): void {

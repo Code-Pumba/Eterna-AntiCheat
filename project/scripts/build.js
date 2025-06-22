@@ -11,10 +11,12 @@ const baseConfig = {
 	keepNames: true,
 	legalComments: 'inline',
 	bundle: true,
-	minify: !watch,
-	minifyIdentifiers: !watch,
-	minifySyntax: !watch,
-	minifyWhitespace: !watch,
+	// Currently disabled...
+	minify: false,
+	minifyIdentifiers: false,
+	minifySyntax: false,
+	minifyWhitespace: false,
+	//
 	treeShaking: true,
 	sourcemap: watch ? 'inline' : false,
 	logLevel: 'info',
@@ -152,7 +154,6 @@ async function runBuild() {
 				const serverContext = await build({
 					...serverConfig,
 					plugins: [watchPlugin],
-					watch: true,
 				});
 				contexts.push(serverContext);
 				console.log('👀 Server watching for changes...');
@@ -162,7 +163,6 @@ async function runBuild() {
 				const clientContext = await build({
 					...clientConfig,
 					plugins: [watchPlugin],
-					watch: true,
 				});
 				contexts.push(clientContext);
 				console.log('👀 Client watching for changes...');
@@ -172,6 +172,9 @@ async function runBuild() {
 				console.log('🌐 Starting web watch mode...');
 				exec('cd ./web && vite build --watch');
 			}
+
+			const allFiles = await getFiles('dist', 'static', 'locales', 'web/dist');
+			await copyFilesWithStructure([...allFiles, 'fxmanifest.lua'], 'server-ready');
 
 			console.log('👀 All builds are watching for changes...');
 			return;

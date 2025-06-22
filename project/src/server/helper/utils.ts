@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'crypto';
+import PCancelable from 'p-cancelable';
 
 // ===============================
 // STRING UTILITIES
@@ -185,6 +186,63 @@ export const sleep = (ms: number, callback?: () => void): Promise<void> => {
 			resolve();
 		}, ms);
 	});
+};
+
+/**
+ * Waits for specified amount of milliseconds before resolving the promise.
+ * If the promise is cancelled, it will resolve with false.
+ * @param ms Milliseconds to wait
+ * @returns Promise that resolves after specified time
+ */
+export const wait = (ms: number): PCancelable<boolean> => {
+	return new PCancelable((resolve, r, onCancel) => {
+		onCancel.shouldReject = false;
+		const timeout = setTimeout(() => resolve(true), ms);
+
+		onCancel(() => {
+			clearTimeout(timeout);
+			resolve(false);
+		});
+	});
+};
+
+/**
+ * Waits until the specified promise resolves with true.
+ * The promise is re-invoked every tick until it resolves with true.
+ * If the promise is cancelled, it will resolve with false.
+ * @param until Promise that resolves with true when condition is met
+ * @param timeout Optional timeout in milliseconds after which the promise is cancelled
+ * @returns Promise that resolves after specified time
+ */
+export const waitUntil = (until: () => Promise<boolean>, timeout?: number): PCancelable<boolean> => {
+	const cancelable = new PCancelable<boolean>((resolve, reject, onCancel) => {
+		const tick = setTick(async () => {
+			const result = await until();
+
+			if (result) {
+				clearTick(tick);
+				resolve(true);
+			}
+		});
+
+		onCancel.shouldReject = false;
+		onCancel(() => {
+			clearTick(tick);
+			resolve(false);
+		});
+	});
+
+	if (timeout) {
+		setTimeout(() => {
+			try {
+				cancelable.cancel();
+			} catch {
+				// do nothing
+			}
+		}, timeout);
+	}
+
+	return cancelable;
 };
 
 /**
