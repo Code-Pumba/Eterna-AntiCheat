@@ -4,7 +4,7 @@ import { Repository } from './repository';
 
 export class BanRepository extends Repository<BanEntity> {
 	constructor() {
-		super('bans');
+		super('player_bans');
 	}
 
 	/**

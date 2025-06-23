@@ -28,8 +28,20 @@ export class BanEntity extends BaseEntity {
 	public banIdentifier: string;
 	public evidenceUrls: string[];
 
-	public constructor(id: number) {
-		super(id);
+	public constructor(id: number, entity?: IBanEntity) {
+		super(entity?.id ?? id);
+
+		this.reason = entity?.reason ?? '';
+		this.bannedBy = entity?.bannedBy ?? '';
+		this.identifier = entity?.identifier ?? [];
+		this.ipAdress = entity?.ipAdress ?? null;
+		this.hwidHash = entity?.hwidHash ?? '';
+		this.expiresAt = entity?.expiresAt ?? new Date();
+		this.isActive = entity?.isActive ?? false;
+		this.note = entity?.note ?? null;
+		this.automatic = entity?.automatic ?? false;
+		this.banIdentifier = entity?.banIdentifier ?? '';
+		this.evidenceUrls = entity?.evidenceUrls ?? [];
 	}
 
 	protected override toString(): string {

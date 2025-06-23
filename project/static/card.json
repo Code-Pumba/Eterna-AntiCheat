@@ -4,29 +4,276 @@
 	"version": "1.5",
 	"body": [
 		{
-			"type": "ProgressBar"
-		},
-		{
 			"type": "Container",
 			"items": [
 				{
 					"type": "TextBlock",
-					"text": "🛡️ Welcome to Eterna Anti-Cheat",
+					"text": "🚫 Access Denied",
 					"weight": "Bolder",
 					"size": "ExtraLarge",
 					"wrap": true,
-					"horizontalAlignment": "Center"
+					"horizontalAlignment": "Center",
+					"color": "Attention"
 				},
 				{
 					"type": "TextBlock",
-					"text": "Your session is being secured.",
+					"text": "You are banned from this server.",
 					"isSubtle": true,
 					"wrap": true,
-					"horizontalAlignment": "Center"
+					"horizontalAlignment": "Center",
+					"size": "Medium"
 				}
 			],
 			"style": "emphasis",
 			"bleed": true
+		},
+		{
+			"type": "Container",
+			"spacing": "Large",
+			"items": [
+				{
+					"type": "TextBlock",
+					"text": "📋 Ban Details",
+					"weight": "Bolder",
+					"size": "Large",
+					"wrap": true,
+					"color": "Accent"
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "🔍 Reason:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BAN_REASON##",
+									"wrap": true,
+									"color": "Attention"
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "📅 Ban Date:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BAN_DATE##",
+									"wrap": true
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "⏰ Expires:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BAN_EXPIRES##",
+									"wrap": true,
+									"color": "##BAN_EXPIRES_COLOR##"
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "👮 Banned By:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BANNED_BY##",
+									"wrap": true
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "🆔 Ban ID:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BAN_IDENTIFIER##",
+									"wrap": true,
+									"size": "Small",
+									"isSubtle": true
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "🤖 Automatic:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##IS_AUTOMATIC##",
+									"wrap": true,
+									"color": "##AUTOMATIC_COLOR##"
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "ColumnSet",
+					"columns": [
+						{
+							"type": "Column",
+							"width": "auto",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "📝 Note:",
+									"weight": "Bolder",
+									"wrap": true
+								}
+							]
+						},
+						{
+							"type": "Column",
+							"width": "stretch",
+							"items": [
+								{
+									"type": "TextBlock",
+									"text": "##BAN_NOTE##",
+									"wrap": true,
+									"isSubtle": true
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "Container",
+			"spacing": "Large",
+			"items": [
+				{
+					"type": "TextBlock",
+					"text": "⚖️ Appeal This Ban",
+					"weight": "Bolder",
+					"size": "Large",
+					"wrap": true,
+					"color": "Good"
+				},
+				{
+					"type": "TextBlock",
+					"text": "If you believe this ban is unjustified, you can appeal it:",
+					"wrap": true,
+					"isSubtle": true
+				},
+				{
+					"type": "TextBlock",
+					"text": "🌐 Website: ##APPEAL_URL##",
+					"wrap": true,
+					"color": "Accent"
+				},
+				{
+					"type": "TextBlock",
+					"text": "💬 Discord: ##DISCORD_URL##",
+					"wrap": true,
+					"color": "Accent"
+				}
+			]
 		},
 		{
 			"type": "Container",
@@ -41,99 +288,100 @@
 							"items": [
 								{
 									"type": "TextBlock",
-									"text": "👥 Active Players",
+									"text": "📊 Server Statistiken",
 									"weight": "Bolder",
 									"wrap": true,
-									"horizontalAlignment": "Center"
+									"horizontalAlignment": "Center",
+									"size": "Medium"
 								},
 								{
-									"type": "TextBlock",
-									"text": "##ACTIVE_PLAYERS##",
-									"size": "Large",
-									"weight": "Bolder",
-									"horizontalAlignment": "Center",
-									"wrap": true
-								}
-							]
-						},
-						{
-							"type": "Column",
-							"width": "stretch",
-							"items": [
-								{
-									"type": "TextBlock",
-									"text": "🔨 Banned Players",
-									"weight": "Bolder",
-									"wrap": true,
-									"horizontalAlignment": "Center"
-								},
-								{
-									"type": "TextBlock",
-									"text": "##BANNED_PLAYERS##",
-									"size": "Large",
-									"weight": "Bolder",
-									"horizontalAlignment": "Center",
-									"wrap": true
-								}
-							]
-						},
-						{
-							"type": "Column",
-							"width": "stretch",
-							"items": [
-								{
-									"type": "TextBlock",
-									"text": "⏳ Queue Position",
-									"weight": "Bolder",
-									"wrap": true,
-									"horizontalAlignment": "Center"
-								},
-								{
-									"type": "TextBlock",
-									"text": "# ##QUEUE_POSITION##",
-									"size": "Large",
-									"weight": "Bolder",
-									"color": "Attention",
-									"horizontalAlignment": "Center",
-									"wrap": true
+									"type": "ColumnSet",
+									"columns": [
+										{
+											"type": "Column",
+											"width": "stretch",
+											"items": [
+												{
+													"type": "TextBlock",
+													"text": "👥 Active Players",
+													"weight": "Bolder",
+													"wrap": true,
+													"horizontalAlignment": "Center",
+													"size": "Small"
+												},
+												{
+													"type": "TextBlock",
+													"text": "##ACTIVE_PLAYERS##",
+													"size": "Large",
+													"weight": "Bolder",
+													"horizontalAlignment": "Center",
+													"wrap": true,
+													"color": "Good"
+												}
+											]
+										},
+										{
+											"type": "Column",
+											"width": "stretch",
+											"items": [
+												{
+													"type": "TextBlock",
+													"text": "🔨 Banned Players",
+													"weight": "Bolder",
+													"wrap": true,
+													"horizontalAlignment": "Center",
+													"size": "Small"
+												},
+												{
+													"type": "TextBlock",
+													"text": "##BANNED_PLAYERS##",
+													"size": "Large",
+													"weight": "Bolder",
+													"horizontalAlignment": "Center",
+													"wrap": true,
+													"color": "Attention"
+												}
+											]
+										}
+									]
 								}
 							]
 						}
 					]
 				}
-			]
+			],
+			"style": "emphasis"
 		},
 		{
 			"type": "TextBlock",
-			"text": "⚠️ Follow the rules to ensure fair play.",
+			"text": "⚠️ Note: Ban evasion is strictly prohibited and will result in permanent exclusion.",
 			"wrap": true,
 			"spacing": "Large",
 			"horizontalAlignment": "Center",
-			"color": "Attention",
-			"weight": "Bolder"
+			"color": "Warning",
+			"weight": "Bolder",
+			"size": "Small"
 		},
 		{
 			"type": "TextBlock",
-			"text": "“Eterna is watching over you.”",
+			"text": "Eterna Anti-Cheat System",
 			"wrap": true,
 			"horizontalAlignment": "Center",
-			"spacing": "Medium",
-			"isSubtle": true
+			"spacing": "Small",
+			"isSubtle": true,
+			"size": "Small"
+		}
+	],
+	"actions": [
+		{
+			"type": "Action.OpenUrl",
+			"title": "🌐 Appeal Ban",
+			"url": "##APPEAL_URL##"
 		},
 		{
-			"type": "TextBlock",
-			"text": "Having issues? Contact us on Discord or visit eterna.gg/support",
-			"wrap": true,
-			"horizontalAlignment": "Center",
-			"spacing": "Medium",
-			"size": "Small",
-			"isSubtle": true
-		},
-		{
-			"type": "ProgressBar"
-		},
-		{
-			"type": "ProgressBar"
+			"type": "Action.OpenUrl",
+			"title": "💬 Discord Support",
+			"url": "##DISCORD_URL##"
 		}
 	]
 }

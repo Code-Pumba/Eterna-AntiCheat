@@ -118,7 +118,8 @@ export abstract class BaseController {
 
 		this.eventListener = async (...args: any[]) => {
 			try {
-				const result = this.onEventHandler!(...args);
+				const src = source;
+				const result = this.onEventHandler!(src, ...args);
 				if (result instanceof Promise) {
 					await result; // ← Hier fehlt das await!
 				}

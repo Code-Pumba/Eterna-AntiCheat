@@ -17,7 +17,10 @@ export const getPlayerIp = (source: number): string => {
 
 // Returns the Steam Hex Identifier
 export const getSteamHexIdentifier = (source: number): string => {
-	const steam = GetPlayerIdentifierByType(source.toString(), 'steam').replace('steam:', '');
+	const steam = GetPlayerIdentifierByType(source.toString(), 'steam')?.replace('steam:', '');
+
+	if (!steam) return 'N/A';
+
 	return BigInt('0x' + steam).toString();
 };
 
