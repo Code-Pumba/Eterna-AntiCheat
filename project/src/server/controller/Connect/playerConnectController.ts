@@ -6,22 +6,10 @@ import { sleep, wait } from '../../helper/utils';
 import { BanRepository } from '../../repository/PlayerBans';
 import { ControllerConfig, ControllerType } from '../data';
 import { AdaptiveCard, getAdaptiveCard, replacePlaceholders } from './adaptiveCardHelper';
-import { Deferrals } from './types';
+import { BanCheckResult, Deferrals, PlayerIdentifiers, SteamBanData, SteamPlayerData, SteamProfileResult } from './types';
 import { getLicenseIdentifier, getPlayerHardwareId, getPlayerIp, getSteamHexIdentifier } from '../../helper/Identifier';
 import { BanEntity } from '../../service/Database/entities/BanEntity';
-
-interface PlayerIdentifiers {
-	license: string | null;
-	steam: string;
-	hwid: string | null;
-	ip: string | null;
-}
-
-interface BanCheckResult {
-	isBanned: boolean;
-	banEntity?: BanEntity;
-	showCard: boolean;
-}
+import axios from 'axios';
 
 export class PlayerConnectController extends BaseController {
 	public override readonly controllerIdentifier = 'playerConnect';
@@ -31,6 +19,11 @@ export class PlayerConnectController extends BaseController {
 	private _banRepository: BanRepository;
 	private logger: Logger;
 	private _adaptiveCard: AdaptiveCard;
+
+	private readonly steamApiDelay = 1000; // 1s
+	private readonly steamApiRetries = 3;
+	private readonly steamAccountAge = 160; // 160 days
+	private readonly steamApiTimeout = 8000; // 8 seconds
 
 	public override readonly config: ControllerConfig = {
 		timeout: 10000,
@@ -285,5 +278,182 @@ export class PlayerConnectController extends BaseController {
 		} catch {
 			return 'N/A';
 		}
+	}
+
+	// Additional methods, for example check if user´s steam account is older than < x months/days
+	// Currently unused, used it before in my other project, and i am 80% sure it works, it should work
+	/**
+	 * Checks Steam profile age and VAC ban status
+	 * Returns isOld === true when account is older than 160 days
+	 * Returns vacBanned === true when account has VAC bans
+	 * Returns noPublic === true when account has no public profile
+	 * @param steamHexId Steam ID in hex format
+	 * @returns Promise containing profile check results
+	 */
+	private async checkSteamProfile(steamHexId: string): Promise<SteamProfileResult> {
+		const steamApiKey = GetConvar('steam_webApiKey', '');
+		if (!steamApiKey) {
+			this.logger.warning('Steam API key not configured');
+			return { isOld: false, vacBanned: false };
+		}
+
+		const profileResult = await this.getPlayerProfile(steamApiKey, steamHexId);
+		if (!profileResult.success) {
+			return profileResult.data;
+		}
+
+		const { isOld } = profileResult.data;
+
+		if (!isOld) {
+			return {
+				isOld: false,
+				vacBanned: false,
+				message: `Steam account must be at least ${this.steamAccountAge} days old`,
+			};
+		}
+
+		await wait(200);
+
+		const vacResult = await this.getPlayerBans(steamApiKey, steamHexId);
+		return {
+			isOld: true,
+			vacBanned: vacResult.vacBanned,
+			message: vacResult.message,
+		};
+	}
+
+	/**
+	 * Retrieves player profile information from Steam API
+	 */
+	private async getPlayerProfile(
+		apiKey: string,
+		steamId: string
+	): Promise<{
+		success: boolean;
+		data: SteamProfileResult | { playerData: SteamPlayerData; isOld: boolean };
+	}> {
+		const playerSummaryRes = await this.makeApiRequest('https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/', { key: apiKey, steamids: steamId }, 'player profile');
+
+		if (!playerSummaryRes.success) {
+			return { success: false, data: { isOld: false, vacBanned: false } };
+		}
+
+		const steamPlayerData: SteamPlayerData = playerSummaryRes.data?.response?.players?.[0];
+
+		if (!steamPlayerData) {
+			return {
+				success: false,
+				data: {
+					isOld: false,
+					vacBanned: false,
+					noPublic: true,
+					message: 'Steam profile not found or private',
+				},
+			};
+		}
+
+		const accountCreatedAt = steamPlayerData.timecreated;
+		if (!accountCreatedAt) {
+			return {
+				success: false,
+				data: {
+					isOld: false,
+					vacBanned: false,
+					noPublic: true,
+					message: 'Steam profile is private',
+				},
+			};
+		}
+
+		const ageInDays = (Date.now() / 1000 - accountCreatedAt) / 86400;
+		const isOld = ageInDays >= this.steamAccountAge;
+
+		return {
+			success: true,
+			data: { playerData: steamPlayerData, isOld },
+		};
+	}
+
+	/**
+	 * Retrieves player ban information from Steam API
+	 */
+	private async getPlayerBans(
+		apiKey: string,
+		steamId: string
+	): Promise<{
+		vacBanned: boolean;
+		message?: string;
+	}> {
+		const vacRes = await this.makeApiRequest('https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/', { key: apiKey, steamids: steamId }, 'player bans');
+
+		if (!vacRes.success) {
+			return {
+				vacBanned: false,
+				message: 'Warning: VAC status could not be verified',
+			};
+		}
+
+		const bans: SteamBanData = vacRes.data?.players?.[0];
+		if (!bans) {
+			return {
+				vacBanned: false,
+				message: 'Warning: VAC status could not be verified',
+			};
+		}
+
+		const isVacBanned = bans.VACBanned || bans.NumberOfVACBans > 0;
+		return {
+			vacBanned: isVacBanned,
+			message: isVacBanned ? 'VAC ban detected - connection denied' : undefined,
+		};
+	}
+
+	/**
+	 * Makes API request with retry logic and proper error handling
+	 */
+	private async makeApiRequest(
+		url: string,
+		params: Record<string, string>,
+		context: string
+	): Promise<{
+		success: boolean;
+		data?: any;
+	}> {
+		let retryCount = 0;
+
+		while (retryCount <= this.steamApiRetries) {
+			try {
+				const response = await axios.get(url, {
+					params,
+					timeout: this.steamApiTimeout,
+					headers: {
+						'User-Agent': 'FiveM Resource (EAntiCheat)/1.0.0',
+					},
+				});
+
+				return { success: true, data: response.data };
+			} catch (error) {
+				const isRateLimit = error.response?.status === 429;
+				const shouldRetry = isRateLimit && retryCount < this.steamApiRetries;
+
+				if (shouldRetry) {
+					const delay = this.steamApiDelay * (retryCount + 1);
+					this.logger.warning(`Steam API rate limit exceeded for ${context}, retrying in ${delay}ms (attempt ${retryCount + 1}/${this.steamApiRetries})`);
+					await wait(delay);
+					retryCount++;
+					continue;
+				}
+
+				if (isRateLimit) {
+					this.logger.warning(`Steam API rate limit exceeded for ${context} after ${this.steamApiRetries} retries`);
+				} else {
+					this.logger.error(`Steam API error for ${context}: ${error.message || error}`);
+				}
+
+				return { success: false };
+			}
+		}
+
+		return { success: false };
 	}
 }

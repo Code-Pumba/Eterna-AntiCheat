@@ -29,6 +29,7 @@
 		"@biomejs/biome": "^1.9.4",
 		"@nativewrappers/fivem": "latest",
 		"@overextended/ox_lib": "latest",
+		"axios": "^1.10.0",
 		"javascript-obfuscator": "^4.1.1",
 		"mysql2": "^3.14.1",
 		"p-cancelable": "^4.0.1",
